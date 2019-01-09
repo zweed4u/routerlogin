@@ -72,7 +72,6 @@ class Router:
 
     def get_latest_version(self):
         headers = {
-            'Referer': 'http://192.168.1.1/1.1.16/login.html',  # apparently this is needed now as of 2019-01-08. without it the response is empty
             'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36',
         }
         response = self.web_session.post(f'http://{self.ipaddress}/cgi-bin/GetLatestVersion', json={}, headers={'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'})
