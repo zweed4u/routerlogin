@@ -39,6 +39,8 @@ class Router:
 
         # this specultated because I'm too lazy to confirm
         version = response.url.split('/login')[0].split('/')[-1]
+        # Instead of relying on redirect with version in url we can also use the GetLatestVersion path which can be requested without authentication
+        # version = self.get_latest_version()
 
         # L72 of login.js
         # //2、输入无误后，提交后台
@@ -48,20 +50,34 @@ class Router:
         payload = {
             'Password': prepared_payload_password,
             'UserName': username,
-            'sessionID': ''
+            'token': ''  # this changed from 'sessionID' on 2019-01-08 apparently. lol okay 
         }
-        response = self.web_session.post(f'http://{self.ipaddress}/{version}/cgi-bin/Login', json=payload, headers={'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'})
+        headers = {
+            'Referer': f'http://192.168.1.1/{version}/login.html',  # apparently this is needed now as of 2019-01-08. without it the response is empty
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36',
+        }
+
+        response = self.web_session.post(f'http://{self.ipaddress}/{version}/cgi-bin/Login', json=payload, headers=headers)
         response.raise_for_status()
         assert response.json()['Success'] is True, response.json()
         self.sid = response.json()['sessionID']
 
         payload = {
             'LangType': 'en',
-            'sessionID': self.sid
+            'token': ''  # this changed from 'sessionID' on 2019-01-08 apparently. lol okay 
         }
-        response = self.web_session.post(f'http://{self.ipaddress}/{version}/cgi-bin/SetLangType', json=payload, headers={'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'})
+        response = self.web_session.post(f'http://{self.ipaddress}/{version}/cgi-bin/SetLangType', json=payload, headers=headers)
         response.raise_for_status()
         assert response.json()['Success'] is True, response.json()
+
+    def get_latest_version(self):
+        headers = {
+            'Referer': 'http://192.168.1.1/1.1.16/login.html',  # apparently this is needed now as of 2019-01-08. without it the response is empty
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36',
+        }
+        response = self.web_session.post(f'http://{self.ipaddress}/cgi-bin/GetLatestVersion', json={}, headers={'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'})
+        response.raise_for_status()
+        return response.json()['Version']
 
 
 root_directory = os.getcwd()
@@ -75,3 +91,4 @@ gateway_ip = ip_route_proc.communicate()[0].decode().strip()
 
 my_router = Router('Spectrum', gateway_ip)
 my_router.login(cfg.get('login', 'username'), cfg.get('login', 'password'))
+print(my_router.get_latest_version())
