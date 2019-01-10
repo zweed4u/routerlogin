@@ -3,3 +3,4 @@
 [login]
 username = ENTER_YOUR_USERNAME_HERE
 password = ENTER_YOUR_PASSWORD_HERE
+encrypted_token = ENTER_ENCRYPTED_TOKEN_HERE
